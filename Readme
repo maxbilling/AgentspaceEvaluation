@@ -1,1 +1,29 @@
-read mme
+Part 1: Creating the Test Data ("Golden Records")
+This part of the system is designed to automatically generate a reliable test set.
+
+Fetch Documents: This example uses Wiki_scraper to randomly scrape sample Wikipedia pages and converts them to pdf stored in a Google Cloud Storage Bucket.
+
+Generate Q&A Pairs: QuestionGnerator is used giving a Large Language Model (LLM) instructions to read each golden document. Based only on the content of that document, the LLM creates relevant questions and their corresponding correct answers.
+
+Store Golden Records: The output is a set of Golden Records. Each record is a triplet containing the {Question, Expected Answer, Golden_Url}. This serves as the "ground truth" for testing the main agent.
+
+Part 2: The AI Agent and Evaluation Loop
+AgentspaceConnectorValidation
+
+This is the main question-answering system and the process for testing its accuracy.
+
+Data Ingestion: Documents from the Source are processed by a Connector. This involves parsing the text into smaller, manageable pieces (chunking) and storing them in a searchable Datastore.
+
+The Agent's Answering Process (RAG):
+
+When a query (a question) is received, the Search Agent finds the most relevant document chunks from the Datastore.
+
+The Assist Agent then takes the original query and the retrieved document chunks and passes them to an LLM to synthesize a final, coherent Answer.
+
+Evaluation:
+
+To test the system, Questions, Answers and Expected_Answers are validated for accuracy.
+
+The Answer Validation module then compares the agent's generated answer against the Expected Answer from the Golden Record. This validation is performed by another LLM acting as a judge.
+
+Results are exported to BigQuery from where it can feed into a Key Performance Indicator (KPI), calculated as a function of both search quality and answer accuracy: KPI(Search∗AnswerAccuracy)
